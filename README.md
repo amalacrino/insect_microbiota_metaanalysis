@@ -40,20 +40,20 @@ Load packages
 
 ```R
 library("dplyr")
-library("phyloseq") #McMurdie & Holmes (2013) 
+library("phyloseq") 
 library("vegan")
-library("data.table") #https://cran.r-project.org/web/packages/data.table/index.html
-library("car") #Fox et al. (2012)
-library("lme4") #Bates et al. (2007)
+library("data.table") 
+library("car")
+library("lme4")
 library("parallel")
 library("tidyr")
 library("stringr")
 library("stringi")
 library("ape")
-library("ggplot2") #Wickham (2011)
+library("ggplot2")
 library("MuMIn")
 library("emmeans")
-library("ggpubr") #Kassambara (2017)
+library("ggpubr")
 ```
 
 Load data
@@ -236,26 +236,6 @@ p
 
 ## References
 
-Ahlmann-Eltze, C. (2017). ggsignif: Significance Brackets for ‘ggplot2’. *R package version 0.4. 0*.
-
-Bates, D., Sarkar, D., Bates, M. D., & Matrix, L. (2007). The lme4 package. *R package version*, *2*(1), 74.
-
-Fox, J., Weisberg, S., Adler, D., Bates, D., Baud-Bovy, G., Ellison, S., ... & Heiberger, R. (2012). Package ‘car’. *Vienna: R Foundation for Statistical Computing*.
-
-Kassambara, A. (2017). ggpubr:“ggplot2” based publication ready plots. *R package version 0.1*, *6*.
-
-Kembel, S. W., Cowan, P. D., Helmus, M. R., Cornwell, W. K., Morlon, H., Ackerly, D. D., ... & Webb, C. O. (2010). Picante: R tools for integrating phylogenies and ecology. *Bioinformatics*, *26*(11), 1463-1464.
-
-Love, M. I., Huber, W., & Anders, S. (2014). Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. *Genome biology*, *15*(12), 550.
-
 Magoč, T., & Salzberg, S. L. (2011). FLASH: fast length adjustment of short reads to improve genome assemblies. *Bioinformatics*, *27*(21), 2957-2963.
 
-McMurdie, P. J., & Holmes, S.  (2013). phyloseq: an R package for reproducible interactive analysis and graphics of microbiome census data. *PloS one*, *8*(4).
-
-Quast, C., Pruesse, E., Yilmaz, P.,  Gerken, J., Schweer, T., Yarza, P., ... & Glöckner, F. O. (2012).  The SILVA ribosomal RNA gene database project: improved data processing  and web-based tools. *Nucleic acids research*, *41*(D1), D590-D596.
-
 Rognes, T., Flouri, T., Nichols, B., Quince, C., Mahé, F. (2016). VSEARCH: a versatile open source tool for metagenomics. *PeerJ* *4*:e2584.
-
-Smyth, G. K. (2005). Limma: linear models for microarray data. In *Bioinformatics and computational biology solutions using R and Bioconductor* (pp. 397-420). Springer, New York, NY.
-
-Wickham, H. (2011). ggplot2. *Wiley Interdisciplinary Reviews: Computational Statistics*, *3*(2), 180-185.
