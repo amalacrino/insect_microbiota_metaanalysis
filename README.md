@@ -1,4 +1,4 @@
-# Host phylogeny drives the structure and diversity of insect microbiota  
+# Host species identity shapes the diversity and structure of insect microbiota 
 
 ### Antonino Malacrinò
 
