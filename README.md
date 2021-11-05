@@ -24,7 +24,7 @@ find . ! -name '*.merged.extendedFrags.fastq' -delete
 for file in *; do mv ${file} ${file/.merged.extendedFrags/}; done
 ```
 
-## 3. Process data with VSEARCH
+## 3a. Process data with VSEARCH
 
 Data handling was carried out using VSEARCH (Rognes et al. 2016), assigning taxonomy using SILVA v132 database (Quast et al. 2012). 
 
@@ -33,6 +33,10 @@ Run the pipeline according to https://github.com/torognes/vsearch/wiki/VSEARCH-p
 ```bash
 vsearch --sintax $PRJ_DIR/otus.fasta --db $PRJ_DIR/silva_16s_v123.fa --tabbedout $PRJ_DIR/ASV_tax_raw.txt --sintax_cutoff 0.5 --threads $NTHREADS
 ```
+
+## 3b. Process data with DADA2
+
+The pipeline used to process data with DADA2 (Callahan et al., 2016) is reported here.
 
 ## 4. Data analysis
 
@@ -126,14 +130,11 @@ permanova.bray.g <- calculate.permanova(GM.gut, "bray")
 permanova.jacc.g <- calculate.permanova(GM.gut, "jaccard")
 ```
 
-Infer phylosymbiosis
+Infer phylosymbiosis (only insect guts)
 
 ```R
 ref_tree <- ape::read.tree('Insecta_species.nwk')
 list.tree <- as.vector(ref_tree$tip.label)
-list.gm.w <- sample_data(GM.whole)$Insect_ID
-common.list.w <- intersect(list.gm.w, list.tree)
-merged.GM.w <- subset_samples(GM.whole, Insect_ID %in% common.list.w)
 list.gm.g <- sample_data(GM.gut)$Insect_ID
 common.list.g <- intersect(list.gm.g, list.tree)
 merged.GM.g <- subset_samples(GM.gut, Insect_ID %in% common.list.g)
@@ -146,7 +147,6 @@ generate.filt.tree <- function(x){
   return(tree.filt)
 }
 
-filt.tree.w <- generate.filt.tree(merged.GM.w)
 filt.tree.g <- generate.filt.tree(merged.GM.g)
 
 tip.age <- function(x){
@@ -155,86 +155,30 @@ tip.age <- function(x){
   data.tree <- data.table::setDT(data.tree, keep.rownames = TRUE)[]
 }
 
-tip.age.w <- tip.age(filt.tree.w)
 tip.age.g <- tip.age(filt.tree.g)
-dv.w <- merge(div.w, tip.age.w, by.x = "Insect_ID", by.y = "rn")
 dv.g <- merge(div.g, tip.age.g, by.x = "Insect_ID", by.y = "rn")
-tree.w <- ape::cophenetic.phylo(filt.tree.w) 
 tree.g <- ape::cophenetic.phylo(filt.tree.g)
 
-cor.test( ~ Shannon + data.tree, data = dv.w, method = "pearson", continuity = FALSE)
-cor.test( ~ Shannon + data.tree, data = dv.g, method = "pearson", continuity = FALSE)
+### Blomberg’s K
+lngest = dv.g$Shannon
+names(lngest) = dv.g$Insect.ID
+set.seed(100)
+picante::phylosignal(lngest[filt.tree.g$tip.label], filt.tree.g, reps = 9999)
 
-generate.dist.mat <- function(x){
-  mergedGM.tree <- merge_samples(x, "Insect_ID")
-  dist.mat <- phyloseq::distance(mergedGM.tree, method = "bray")
-  dist.mat <- as.matrix(dist.mat)
-  return(dist.mat)
-}
+### Pagel's Lambda
+p.lambda <- comparative.data(phy = filt.tree.g, data = dv.g, names.col = Insect.ID, vcv = TRUE, na.omit = FALSE, warn.dropped = TRUE)
+model.lambda <- pgls(Shannon ~ 1, data = p.lambda, lambda='ML')
+summary(model.lambda)
 
-dist.mat.w.a <- generate.dist.mat(merged.GM.w)
-mantel.w <- mantel(tree.w, dist.mat.w.a, method = "pearson", permutations = 9999, na.rm = TRUE)
+### Mantel test
 dist.mat.g.a <- generate.dist.mat(merged.GM.g)
 mantel.g <- mantel(tree.g, dist.mat.g.a, method = "pearson", permutations = 9999, na.rm = TRUE)
-                                             
-plot.corr.shannon <- function(x, y, z){
-  plot <- ggplot(x, aes(x=data.tree, y=Shannon)) + 
-          theme_bw(base_size = 15) +
-          geom_point(size = 3, alpha = 0.5) +
-          ggtitle(y) +
-          theme(legend.position="none",
-                legend.text = element_text(size = 12),
-                panel.background = element_rect(size = 0.5, linetype = "solid"),
-                panel.grid.major = element_blank(), 
-                panel.grid.minor = element_blank(),
-                plot.title = element_text(size = 14, hjust = 0.5),
-                axis.title=element_text(size=12)) +
-            xlab("Divergence time (Myr)") +
-            ylab(z) +
-            geom_smooth(method=lm, se = FALSE) +
-            xlim(0, 400) +
-            ylim(0, 5)
-  return(plot)
-}
-
-plot.corr.mantel <- function(x, y, z){
-  aa <- as.vector(x)
-  tt <- as.vector(y)
-  mat <- data.frame(aa,tt)
-  plot <- ggplot(mat, aes(x=tt, y=aa)) + 
-                    theme_bw(base_size = 15) +
-                    geom_point(size = 3, alpha = 0.5) +
-                    theme(legend.position="none",
-                          legend.text = element_text(size = 12),
-                          panel.background = element_rect(size = 0.5, linetype = "solid"),
-                          panel.grid.major = element_blank(), 
-                          panel.grid.minor = element_blank(),
-                          plot.title = element_text(size = 14, hjust = 0.5),
-                          axis.title=element_text(size=12)) +
-                      xlab("Host phylogenetic distance") +
-                      ylab(z) +
-                      geom_smooth(method=lm, se = FALSE) +
-                      xlim(0, 850) +
-                      ylim(0, 1.05) +
-                      scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
-  return(plot)
-}
-
-plot.sh.w <- plot.corr.shannon(dv.w, "Whole insects", "Shannon index")
-plot.sh.g <- plot.corr.shannon(dv.g, "Insect guts", " ")
-plot.mantel.w <- plot.corr.mantel(dist.mat.w.a, tree.w, "Bray-Curtis distance")
-plot.mantel.g <- plot.corr.mantel(dist.mat.g.a, tree.g, " ")
-
-p <- ggpubr::ggarrange(plot.sh.w, plot.sh.g,
-                       plot.mantel.w, plot.mantel.g,
-               ncol = 2, nrow = 2,  align = "hv", 
-               widths = 1, heights = 1,
-               labels = c("A)", "C)", "B)", "D)"),
-               common.legend = F)
-p                                             
+mantel.g
 ```
 
 ## References
+
+Callahan, B. J., McMurdie, P. J., Rosen, M. J., Han, A. W., Johnson, A. J. A., & Holmes, S. P. (2016). DADA2: high-resolution sample inference from Illumina amplicon data. Nature methods, 13(7), 581-583.
 
 Magoč, T., & Salzberg, S. L. (2011). FLASH: fast length adjustment of short reads to improve genome assemblies. *Bioinformatics*, *27*(21), 2957-2963.
 
