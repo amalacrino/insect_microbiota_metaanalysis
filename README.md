@@ -36,7 +36,7 @@ vsearch --sintax $PRJ_DIR/otus.fasta --db $PRJ_DIR/silva_16s_v123.fa --tabbedout
 
 ## 3b. Process data with DADA2
 
-The pipeline used to process data with DADA2 (Callahan et al., 2016) is reported here.
+The pipeline used to process data with DADA2 (Callahan et al., 2016) is reported [here](dada2_pipeline.md).
 
 ## 4. Data analysis
 
